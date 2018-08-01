@@ -1,0 +1,24 @@
+name: DC 18
+type: theme
+description: 'DrupalCamp 18 Theme'
+# core: 8.x
+base theme: bootstrap
+regions:
+  branding: Branding
+  header: Header
+  pre_content: 'Pre content'
+  content: Content
+  sidebar_first: 'Sidebar first'
+  sidebar_second: 'Sidebar second'
+  post_content: 'Post content'
+  footer: Footer
+component-libraries:
+  dc18:
+    paths:
+    - sass/components
+
+# Information added by Drupal.org packaging script on 2018-07-20
+version: '8.x-3.12'
+core: '8.x'
+project: 'bootstrap'
+datestamp: 1532095092
