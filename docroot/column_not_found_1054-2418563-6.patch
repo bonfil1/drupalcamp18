@@ -1,0 +1,76 @@
+diff --git a/core/modules/content_translation/content_translation.module b/core/modules/content_translation/content_translation.module
+index 8f5e8fd..067aadb 100644
+--- a/core/modules/content_translation/content_translation.module
++++ b/core/modules/content_translation/content_translation.module
+@@ -476,7 +476,9 @@ function content_translation_language_configuration_element_submit(array $form,
+ 
+   if (\Drupal::service('content_translation.manager')->isEnabled($context['entity_type'], $context['bundle']) != $enabled) {
+     \Drupal::service('content_translation.manager')->setEnabled($context['entity_type'], $context['bundle'], $enabled);
+-    \Drupal::entityManager()->clearCachedDefinitions();
++    $entity_manager = \Drupal::entityManager();
++    $entity_manager->clearCachedDefinitions();
++    \Drupal::service('content_translation.updates_manager')->updateDefinitions(array($context['entity_type'] => $entity_manager->getDefinition($context['entity_type'])));
+     \Drupal::service('router.builder_indicator')->setRebuildNeeded();
+   }
+ }
+diff --git a/core/modules/content_translation/src/Tests/ContentTranslationEntityTranslationTest.php b/core/modules/content_translation/src/Tests/ContentTranslationEntityTranslationTest.php
+new file mode 100644
+index 0000000..4ee35fc
+--- /dev/null
++++ b/core/modules/content_translation/src/Tests/ContentTranslationEntityTranslationTest.php
+@@ -0,0 +1,55 @@
++<?php
++
++/**
++ * @file
++ * Contains \Drupal\entity\Tests\ContentTranslationEntityBundleUITest.
++ */
++
++namespace Drupal\content_translation\Tests;
++
++use Drupal\simpletest\WebTestBase;
++
++/**
++ * Tests the content translation behaviours when creating entities.
++ *
++ * @group content_translation
++ */
++class ContentTranslationEntityTranslationTest extends WebTestBase {
++
++  public static $modules = array('language', 'content_translation', 'node');
++
++  protected function setUp() {
++    parent::setUp();
++    // Create page content type.
++    $this->drupalCreateContentType(array('type' => 'page'));
++
++    // Create and log in a user.
++    $user = $this->drupalCreateUser(array(
++      'access administration pages',
++      'administer languages',
++      'administer content translation',
++      'administer content types',
++      'create page content',
++      'edit own page content'
++    ));
++    $this->drupalLogin($user);
++
++    // Enable content translation for the page content type.
++    $edit = array('language_configuration[content_translation]' => TRUE);
++    $this->drupalPostForm('admin/structure/types/manage/page', $edit, 'Save content type');
++  }
++
++  /**
++   * Tests content types default translation behaviour.
++   */
++  public function testNodeTranslation() {
++
++    // Create a node.
++    $edit = array();
++    $edit['title[0][value]'] = $this->randomMachineName(8);
++    $edit['body[0][value]'] = $this->randomMachineName(16);
++    $this->drupalPostForm('node/add/page', $edit, t('Save'));
++
++  }
++
++}
